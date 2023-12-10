@@ -5,6 +5,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import { getAllCargo } from '../requests/GetAllCargo'
+import Nav from 'react-bootstrap/Nav';
 
 interface ISearchProps {
     setCargo: React.Dispatch<React.SetStateAction<ICargoProps[]>>
@@ -39,6 +40,11 @@ const Search: FC<ISearchProps> = ({ setCargo }) => {
             })
     }
     return (
+        <>
+        <Navbar>
+            <Nav.Item className="nav-link p-0 text-dark">Грузы</Nav.Item>
+            <Nav.Item className='mx-1'>{">"}</Nav.Item>
+        </Navbar>
         <Navbar>
             <Form className="d-flex flex-row flex grow-1 gap-2" onSubmit={handleSearch}>
                 <Form.Control
@@ -75,7 +81,8 @@ const Search: FC<ISearchProps> = ({ setCargo }) => {
                     Поиск
                 </Button>
             </Form>
-        </Navbar>)
+        </Navbar>
+        </>)
 }
 
 const AllCargo = () => {
