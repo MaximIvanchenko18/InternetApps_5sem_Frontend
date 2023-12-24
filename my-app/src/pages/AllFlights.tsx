@@ -1,7 +1,7 @@
 const AllFlights = () => {
     return (
-        <h3 className="text-center">Страница недоступна</h3>
+        <h3 className="text-center">Для просмотра необходимо авторизоваться</h3>
     )
 }
 
-export { AllFlights }
+export default AllFlights

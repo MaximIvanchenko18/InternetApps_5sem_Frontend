@@ -6,9 +6,9 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
-      '/api': 'http://0.0.0.0:7000',
+      '/api': 'http://0.0.0.0:8000',
     }
   },
-  base: "/InternetApps_5sem_Frontend/",
+  base: "/",
   plugins: [react()]
 })

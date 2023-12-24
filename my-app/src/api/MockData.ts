@@ -1,7 +1,7 @@
-import { ICargoProps } from '../components/CargoCard';
+import { ICargo } from '../models';
 
 export const draft_flight = null
-export let cargos = new Map<string, ICargoProps>([
+export let cargos = new Map<string, ICargo>([
     ["668e580c-ed60-454f-95cb-86b10a1b265d", {
       "uuid": "668e580c-ed60-454f-95cb-86b10a1b265d",
       "name": "Кислород",
@@ -11,7 +11,7 @@ export let cargos = new Map<string, ICargoProps>([
       "weight": 60,
       "capacity": 0.05,
       "description": "Кислород в баллонах под высоким давлением",
-      "photo": "0.0.0.0:9000/images/oxygen.jpg",
+      "image_url": "http://localhost:9000/images/oxygen.jpg"
     }
     ],
     ["2d6d7e83-de1f-473e-a11b-81119da7f26f", {
@@ -23,7 +23,7 @@ export let cargos = new Map<string, ICargoProps>([
         "weight": 0.003,
         "capacity": 0.0003,
         "description": "Чай черный цейлонский без сахара в специализированном пакете",
-        "photo": "0.0.0.0:9000/images/tea.jpg",
+        "image_url": "http://localhost:9000/images/tea.jpg"
     }
     ],
     ["c997bf5c-8da9-498a-bcf1-39787d56eec8", {
@@ -35,7 +35,7 @@ export let cargos = new Map<string, ICargoProps>([
         "weight": 0.03,
         "capacity": 0.00015,
         "description": "Мука пшеничная, вода, маргарин, сахар, дрожжи, соль, молоко сухое",
-        "photo": "0.0.0.0:9000/images/bread.jpg",
+        "image_url": "http://localhost:9000/images/bread.jpg"
     }
     ]
 ])

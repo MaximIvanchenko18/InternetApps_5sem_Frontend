@@ -1,9 +1,19 @@
 import { cargos, draft_flight } from './MockData';
-import { ICargoProps } from '../components/CargoCard';
+import { ICargo } from '../models';
+import axios from 'axios';
+
+
+const ip = 'localhost'
+const apiPort = '8000'
+const imagesPort = '9000'
+export const imagePlaceholder = `${import.meta.env.BASE_URL}placeholder.jpg`
+
+export const axiosAPI = axios.create({ baseURL: `http://${ip}:${apiPort}/api/`, timeout: 500 });
+export const axiosImage = axios.create({ baseURL: `http://${ip}:${imagesPort}/images/`, timeout: 1000 });
 
 export type Response = {
     draft_flight: string | null;
-    cargos: ICargoProps[];
+    cargos: ICargo[];
 }
 
 export async function getAllCargo(name?: string, low_price?: number, high_price?: number): Promise<Response> {
@@ -26,16 +36,9 @@ export async function getAllCargo(name?: string, low_price?: number, high_price?
         url += `high_price=${high_price}`
     }
 
-    return fetch(url)
-        .then(response => {
-            if (response.status >= 500 || response.headers.get("Server") == "GitHub.com") {
-                return fromMock(name, low_price, high_price)
-            }
-            return response.json() as Promise<Response>
-        })
-        .catch(_ => {
-            return fromMock(name, low_price, high_price)
-        })
+    return axiosAPI.get<Response>(url)
+        .then(response => response.data)
+        .catch(_ => fromMock(name, low_price, high_price))
 }
 
 function fromMock(name?: string, low_price?: number, high_price?: number): Response {
@@ -58,4 +61,15 @@ function fromMock(name?: string, low_price?: number, high_price?: number): Respo
     }
 
     return { draft_flight, cargos: filteredCargo }
+}
+
+export async function getCargo(cargoId?: string): Promise<ICargo | undefined> {
+    if (cargoId === undefined) {
+        return undefined
+    }
+
+    let url = 'cargo/' + cargoId
+    return axiosAPI.get<ICargo>(url)
+        .then(response => response.data)
+        .catch(_ => cargos.get(cargoId))
 }
