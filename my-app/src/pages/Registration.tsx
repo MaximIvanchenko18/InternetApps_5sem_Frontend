@@ -1,26 +1,27 @@
 import { FC, useState, ChangeEvent, FormEvent } from 'react';
 import { Form, Button, Container } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from "react-redux";
 import { axiosAPI } from '../api'
 import { AxiosResponse, AxiosError } from 'axios';
-import { useDispatch } from "react-redux";
 import { AppDispatch } from "../store";
-import { setRole } from "../store"
+import { setLogin as setLoginStore } from "../store/userSlice"
 
 const Registration: FC = () => {
-    const [login, setLogin] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
-    const dispatch = useDispatch<AppDispatch>();
+    const [login, setLogin] = useState<string>('')
+    const [password, setPassword] = useState<string>('')
+    const dispatch = useDispatch<AppDispatch>()
+    const navigate = useNavigate()
 
     const handleRegistration = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         axiosAPI.post('/user/sign_up', { login, password })
             .then((response: AxiosResponse) => {
-                console.log('Response:', response.data);
-                dispatch(setRole(response.data.role));
                 localStorage.setItem('access_token', response.data.access_token);
                 localStorage.setItem('role', response.data.role);
                 localStorage.setItem('login', response.data.login);
+                dispatch(setLoginStore(login));
+                navigate('/')
             })
             .catch((error: AxiosError) => {
                 console.error('Error:', error.message);

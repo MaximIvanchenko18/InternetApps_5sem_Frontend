@@ -1,15 +1,16 @@
 import { useEffect } from 'react';
-import { SmallCCard } from '../components/CargoCard';
-import LoadAnimation from '../components/LoadAnimation';
 import Navbar from 'react-bootstrap/Navbar';
-import Nav from 'react-bootstrap/Nav';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import { useDispatch, useSelector } from "react-redux";
+import { useLocation } from 'react-router-dom';
+import { SmallCCard } from '../components/CargoCard';
+import LoadAnimation from '../components/LoadAnimation';
 import { getAllCargo } from '../api'
 import { AppDispatch, RootState } from "../store";
-import { useDispatch, useSelector } from "react-redux";
 import { setCargos, setSearchText, setLowPrice, setHighPrice } from "../store/cargoSlice"
 import { setDraft } from '../store/flightSlice';
+import { clearHistory, addToHistory } from "../store/historySlice"
 
 const AllCargos = () => {
     const cargos = useSelector((state: RootState) => state.cargo.cargos);
@@ -18,6 +19,7 @@ const AllCargos = () => {
     const searchHighPrice = useSelector((state: RootState) => state.cargo.searchHighPrice);
     //const _ = useSelector((state: RootState) => state.flight.draft);
     const dispatch = useDispatch<AppDispatch>();
+    const location = useLocation().pathname;
 
     const getCargos = () =>
         getAllCargo(searchText, searchLowPrice, searchHighPrice)
@@ -35,15 +37,13 @@ const AllCargos = () => {
     }
 
     useEffect(() => {
+        dispatch(clearHistory())
+        dispatch(addToHistory({ path: location, name: "Грузы" }))
         getCargos();
     }, [dispatch]);
 
     return (
         <>
-            <Navbar>
-                <Nav.Item className="nav-link p-0 text-dark">Грузы</Nav.Item>
-                <Nav.Item className='mx-1'>{">"}</Nav.Item>
-            </Navbar>
             <Navbar>
                 <Form className="d-flex flex-row flex grow-1 gap-2" onSubmit={handleSearch}>
                     <Form.Control

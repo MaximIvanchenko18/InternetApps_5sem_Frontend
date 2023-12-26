@@ -1,26 +1,30 @@
 import { FC, useState, ChangeEvent, FormEvent } from 'react';
 import { Form, Button, Container } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import { axiosAPI } from '../api'
+import { Link, useNavigate } from 'react-router-dom';
 import { AxiosResponse, AxiosError } from 'axios';
 import { useDispatch } from "react-redux";
+import { axiosAPI } from '../api'
 import { AppDispatch } from "../store";
-import { setRole } from "../store"
+import { setLogin as setLoginStore} from "../store/userSlice"
 
 const Authorization: FC = () => {
-    const [login, setLogin] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
-    const dispatch = useDispatch<AppDispatch>();
+    const [login, setLogin] = useState<string>('')
+    const [password, setPassword] = useState<string>('')
+    const dispatch = useDispatch<AppDispatch>()
+    const navigate = useNavigate()
 
     const handleRegistration = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         axiosAPI.post('/user/login', { login, password })
             .then((response: AxiosResponse) => {
-                console.log('Response:', response.data);
-                dispatch(setRole(response.data.role));
+                let currentTime = new Date()
+                let expires_at = new Date(currentTime.getTime() + parseInt(response.data.expires_in) / 1000000)
+                localStorage.setItem('expires_at', expires_at.toISOString());
                 localStorage.setItem('access_token', response.data.access_token);
                 localStorage.setItem('role', response.data.role);
                 localStorage.setItem('login', response.data.login);
+                dispatch(setLoginStore(login));
+                navigate('/')
             })
             .catch((error: AxiosError) => {
                 console.error('Error:', error.message);

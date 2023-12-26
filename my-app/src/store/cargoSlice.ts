@@ -32,10 +32,10 @@ const cargoSlice = createSlice({
             state.searchText = payload
         },
         setLowPrice: (state, { payload }) => {
-            state.searchLowPrice = payload
+            state.searchLowPrice = payload > 0 ? payload : undefined
         },
         setHighPrice: (state, { payload }) => {
-            state.searchHighPrice = payload
+            state.searchHighPrice = payload > 0 ? payload : undefined
         },
         resetCargo: (state) => {
             state.cargo = undefined;

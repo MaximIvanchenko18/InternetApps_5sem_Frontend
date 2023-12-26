@@ -5,10 +5,10 @@ import ListGroup from 'react-bootstrap/ListGroup';
 import CardImage from './CardImage.tsx';
 import { ICargo } from '../models';
 
-export const SmallCCard: FC<ICargo> = ({ uuid, name, price, weight, image_url}) => (
+export const SmallCCard: FC<ICargo> = ({ uuid, name, price, weight, photo}) => (
     <Card className='w-100 mx-auto px-0 shadow-lg text-center'>
         <div className="ratio ratio-16x9 overflow-hidden">
-            <CardImage url={image_url} className='rounded object-fit-cover' />
+            <CardImage url={photo} className='rounded object-fit-cover' />
         </div>
         <Card.Body className='flex-grow-1'>
             <Card.Title>{name}</Card.Title>
@@ -18,12 +18,12 @@ export const SmallCCard: FC<ICargo> = ({ uuid, name, price, weight, image_url}) 
     </Card>
 )
 
-export const BigCCard: FC<ICargo> = ({name, category, price, weight, capacity, description, image_url}) => (
+export const BigCCard: FC<ICargo> = ({name, category, price, weight, capacity, description, photo}) => (
     <Card className='shadow-lg text-center text-md-start'>
         <div className='row'>
             <div className='col-12 col-md-8 overflow-hidden'>
                 {/* <Card.Img src={`http://${image_url}`} onError={setPlaceholder}/> */}
-                <CardImage url={image_url} />
+                <CardImage url={photo} />
             </div>
             <Card.Body className='col-12 col-md-4 ps-md-0'>
                 <ListGroup variant="flush">

@@ -4,12 +4,11 @@ import axios from 'axios';
 
 
 const ip = 'localhost'
-const apiPort = '8000'
-const imagesPort = '9000'
+const port = '3000'
 export const imagePlaceholder = `${import.meta.env.BASE_URL}placeholder.jpg`
 
-export const axiosAPI = axios.create({ baseURL: `http://${ip}:${apiPort}/api/`, timeout: 500 });
-export const axiosImage = axios.create({ baseURL: `http://${ip}:${imagesPort}/images/`, timeout: 1000 });
+export const axiosAPI = axios.create({ baseURL: `http://${ip}:${port}/api/`, timeout: 500 });
+export const axiosImage = axios.create({ baseURL: `http://${ip}:${port}/images/`, timeout: 1000 });
 
 export type Response = {
     draft_flight: string | null;
@@ -17,7 +16,7 @@ export type Response = {
 }
 
 export async function getAllCargo(name?: string, low_price?: number, high_price?: number): Promise<Response> {
-    let url = '/api/cargo'
+    let url = 'cargo'
     let several_args = false
     if (name !== undefined || low_price !== undefined || high_price !== undefined) {
         url += `?`
