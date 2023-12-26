@@ -9,7 +9,8 @@ import { axiosAPI } from '../api';
 
 import { AppDispatch, RootState } from "../store";
 import { clearHistory } from "../store/historySlice"
-import { resetLogin } from "../store/userSlice";
+import { setFlights } from "../store/flightSlice"
+import { resetLogin, resetRole } from "../store/userSlice";
 
 interface IButtonProps {
     path: string;
@@ -40,6 +41,8 @@ const Main = () => {
         axiosAPI.post('/user/logout', null, { headers: { 'Authorization': `Bearer ${accessToken}` } })
             .then(_ => {
                 dispatch(resetLogin())
+                dispatch(resetRole())
+                dispatch(setFlights([]))
                 localStorage.clear()
             })
             .catch((error) => {
@@ -50,8 +53,8 @@ const Main = () => {
     return (
         <Container fluid="sm" className='d-flex flex-column flex-grow-1 align-items-center justify-content-center'>
             <Col className='col-10 col-sm-7 col-md-6 col-lg-5'>
-                <MenuButton path="/registration" text="Регистрация" />
-                <MenuButton path="/authorization" text="Авторизация" />
+                {!userLogin && <MenuButton path="/registration" text="Регистрация" />}
+                {!userLogin && <MenuButton path="/authorization" text="Авторизация" />}
                 {userLogin && <Button
                     variant="outline-primary"
                     className='flex-grow-1 shadow-sm mb-3 w-100'

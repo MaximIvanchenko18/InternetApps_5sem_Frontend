@@ -12,7 +12,7 @@ const AuthCheck: React.FC<AuthCheckProps> = ({ children, allowedRole }) => {
     const expires_at_iso = localStorage.getItem("expires_at")
     const expires_at = expires_at_iso ? new Date(expires_at_iso) : null
     const userRole = localStorage.getItem('role')
-    const access = expires_at && userRole && expires_at > new Date() && userRole >= allowedRole
+    const access = expires_at && userRole && expires_at > new Date() && parseInt(userRole) >= parseInt(allowedRole)
 
     return access ? (
         <>{children}</>

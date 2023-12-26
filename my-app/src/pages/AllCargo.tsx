@@ -3,10 +3,10 @@ import Navbar from 'react-bootstrap/Navbar';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { SmallCCard } from '../components/CargoCard';
 import LoadAnimation from '../components/LoadAnimation';
-import { getAllCargo } from '../api'
+import { getAllCargo, axiosAPI } from '../api'
 import { AppDispatch, RootState } from "../store";
 import { setCargos, setSearchText, setLowPrice, setHighPrice } from "../store/cargoSlice"
 import { setDraft } from '../store/flightSlice';
@@ -17,7 +17,8 @@ const AllCargos = () => {
     const searchText = useSelector((state: RootState) => state.cargo.searchText);
     const searchLowPrice = useSelector((state: RootState) => state.cargo.searchLowPrice);
     const searchHighPrice = useSelector((state: RootState) => state.cargo.searchHighPrice);
-    //const _ = useSelector((state: RootState) => state.flight.draft);
+    const role = useSelector((state: RootState) => state.user.role);
+    const draft = useSelector((state: RootState) => state.flight.draft);
     const dispatch = useDispatch<AppDispatch>();
     const location = useLocation().pathname;
 
@@ -25,7 +26,7 @@ const AllCargos = () => {
         getAllCargo(searchText, searchLowPrice, searchHighPrice)
             .then(data => {
                 dispatch(setCargos(data?.cargos))
-                dispatch(setDraft(data?.draft_flight))
+                dispatch(setDraft(data?.draft_flight?.uuid))
             })
             .catch((error) => {
                 console.error("Error while fetching data:", error);
@@ -41,6 +42,21 @@ const AllCargos = () => {
         dispatch(addToHistory({ path: location, name: "Грузы" }))
         getCargos();
     }, [dispatch]);
+
+    const addToFlight = (id: string) => () => {
+        let accessToken = localStorage.getItem('access_token');
+        if (!accessToken) {
+            return
+        }
+
+        axiosAPI.post(`/cargo/${id}/add_to_flight`, null, { headers: { 'Authorization': `Bearer ${accessToken}`, } })
+            .then(response => {
+                dispatch(setDraft(response.data.uuid))
+            })
+            .catch((error) => {
+                console.error("Error while fetching data:", error);
+            });
+    }
 
     return (
         <>
@@ -85,13 +101,28 @@ const AllCargos = () => {
                 {cargos ? (
                     cargos.map((cargo) => (
                         <div className='d-flex p-2 justify-content-center' key={cargo.uuid}>
-                            <SmallCCard {...cargo} />
+                            <SmallCCard  {...cargo}>
+                                {role != '0' &&
+                                    <Button
+                                        variant='outline-primary'
+                                        className='mt-0 rounded-bottom'
+                                        onClick={addToFlight(cargo.uuid)}>
+                                        Добавить в корзину
+                                    </Button>
+                                }
+                            </SmallCCard>
                         </div>
                     ))
                 ) : (
                     <LoadAnimation />
-                )} 
+                )}
             </div>
+            {draft && <Link
+                to={`/flights/${draft}`}
+                className="btn btn-primary rounded-pill"
+                style={{ position: 'fixed', bottom: '16px', right: '16px', zIndex: '1000' }}>
+                Корзина
+            </Link>}
         </>
     )
 }

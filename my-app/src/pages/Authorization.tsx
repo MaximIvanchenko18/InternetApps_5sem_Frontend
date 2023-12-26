@@ -5,7 +5,7 @@ import { AxiosResponse, AxiosError } from 'axios';
 import { useDispatch } from "react-redux";
 import { axiosAPI } from '../api'
 import { AppDispatch } from "../store";
-import { setLogin as setLoginStore} from "../store/userSlice"
+import { setLogin as setLoginStore, setRole} from "../store/userSlice"
 
 const Authorization: FC = () => {
     const [login, setLogin] = useState<string>('')
@@ -24,6 +24,7 @@ const Authorization: FC = () => {
                 localStorage.setItem('role', response.data.role);
                 localStorage.setItem('login', response.data.login);
                 dispatch(setLoginStore(login));
+                dispatch(setRole(response.data.role));
                 navigate('/')
             })
             .catch((error: AxiosError) => {
@@ -67,7 +68,7 @@ const Authorization: FC = () => {
 
                 <Link to={'/registration'}>
                     <Button variant="link">
-                        Перейти к регистрации
+                        Регистрация
                     </Button>
                 </Link>
             </Form>

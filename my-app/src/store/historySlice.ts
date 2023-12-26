@@ -20,6 +20,9 @@ const historySlice = createSlice({
         addToHistory: (state, { payload }) => {
             state.pages = [...state.pages, payload]
         },
+        cutHistory: (state, { payload }) => {
+            state.pages = state.pages.slice(0, payload)
+        },
         clearHistory: (state) => {
             state.pages = []
         },
@@ -28,4 +31,4 @@ const historySlice = createSlice({
 
 export default historySlice.reducer;
 
-export const { addToHistory, clearHistory } = historySlice.actions;
+export const { addToHistory, cutHistory, clearHistory } = historySlice.actions;

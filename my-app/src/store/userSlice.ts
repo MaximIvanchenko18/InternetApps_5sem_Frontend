@@ -2,10 +2,12 @@ import { createSlice } from "@reduxjs/toolkit";
 
 interface userState {
     login: string | null
+    role: string
 }
 
 const initialState: userState = {
-    login: null
+    login: null,
+    role: '0'
 }
 
 const userSlice = createSlice({
@@ -18,9 +20,15 @@ const userSlice = createSlice({
         resetLogin: (state) => {
             state.login = null
         },
+        setRole: (state, { payload }) => {
+            state.role = payload
+        },
+        resetRole: (state) => {
+            state.role = '0'
+        },
     },
 });
 
 export default userSlice.reducer;
 
-export const { setLogin, resetLogin } = userSlice.actions;
+export const { setLogin, resetLogin, setRole, resetRole } = userSlice.actions;

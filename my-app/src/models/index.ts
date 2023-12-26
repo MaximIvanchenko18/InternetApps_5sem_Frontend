@@ -14,10 +14,10 @@ export interface IFlight {
     uuid: string
     status: string
     creation_date: string
-    formation_date: string
-    completion_date: string
+    formation_date: string | null
+    completion_date: string | null
     customer: string
-    moderator: string
-    rocket_type: string
-    shipment_status: string
+    moderator: string | null
+    rocket_type: string | null
+    shipment_status: string | null
 }

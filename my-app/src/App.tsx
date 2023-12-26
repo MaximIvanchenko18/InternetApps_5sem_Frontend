@@ -4,13 +4,14 @@ import { useDispatch } from "react-redux";
 import { Main, AllCargo, CargosTable, CargoInfo, CargoEdit, AllFlights, FlightInfo, Authorization, Registration } from './pages'
 import NavigationBar from './components/NavigationBar';
 import { AppDispatch } from "./store";
-import { setLogin } from "./store/userSlice";
+import { setLogin, setRole } from "./store/userSlice";
 
 function App() {
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
     dispatch(setLogin(localStorage.getItem('login')));
+    dispatch(setRole(localStorage.getItem('role')));
   }, [dispatch]);
 
   return (

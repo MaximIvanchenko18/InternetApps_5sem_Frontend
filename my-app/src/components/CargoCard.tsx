@@ -1,12 +1,16 @@
-import { FC } from 'react'
+import { FC, ReactNode } from 'react'
 import { Link } from 'react-router-dom';
-import Card from 'react-bootstrap/Card';
+import { Card, ButtonGroup } from 'react-bootstrap';
 import ListGroup from 'react-bootstrap/ListGroup';
 import CardImage from './CardImage.tsx';
 import { ICargo } from '../models';
 
-export const SmallCCard: FC<ICargo> = ({ uuid, name, price, weight, photo}) => (
-    <Card className='w-100 mx-auto px-0 shadow-lg text-center'>
+interface CardProps extends ICargo {
+    children: ReactNode;
+}
+
+export const SmallCCard: FC<CardProps> = ({ children, uuid, name, price, weight, photo}) => (
+    <Card className='w-100 mx-auto px-0 shadow-lg text-center' key={uuid}>
         <div className="ratio ratio-16x9 overflow-hidden">
             <CardImage url={photo} className='rounded object-fit-cover' />
         </div>
@@ -14,7 +18,10 @@ export const SmallCCard: FC<ICargo> = ({ uuid, name, price, weight, photo}) => (
             <Card.Title>{name}</Card.Title>
             <Card.Text>{price} руб./{weight} кг</Card.Text>
         </Card.Body>
-        <Link to={`/cargo/${uuid}`} className="btn btn-primary">Подробнее</Link>
+        <ButtonGroup vertical>
+            <Link to={`/cargo/${uuid}`} className="btn btn-outline-primary">Подробнее</Link>
+            <>{children}</>
+        </ButtonGroup>
     </Card>
 )
 
@@ -22,7 +29,6 @@ export const BigCCard: FC<ICargo> = ({name, category, price, weight, capacity, d
     <Card className='shadow-lg text-center text-md-start'>
         <div className='row'>
             <div className='col-12 col-md-8 overflow-hidden'>
-                {/* <Card.Img src={`http://${image_url}`} onError={setPlaceholder}/> */}
                 <CardImage url={photo} />
             </div>
             <Card.Body className='col-12 col-md-4 ps-md-0'>
