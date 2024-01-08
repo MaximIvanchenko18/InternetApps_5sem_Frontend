@@ -19,7 +19,7 @@ export const SmallCCard: FC<CardProps> = ({ children, uuid, name, price, weight,
             <Card.Text>{price} руб./{weight} кг</Card.Text>
         </Card.Body>
         <ButtonGroup vertical>
-            <Link to={`/cargo/${uuid}`} className="btn btn-outline-primary">Подробнее</Link>
+            <Link to={`/cargo/${uuid}`} className="btn btn-primary border border-dark">Подробнее</Link>
             <>{children}</>
         </ButtonGroup>
     </Card>

@@ -1,35 +1,51 @@
 import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
-import { Card, Row, Col, Navbar, Nav, InputGroup, Form, Button, ButtonGroup } from 'react-bootstrap';
-
+import { Card, Row, Col, Navbar, InputGroup, Form, Button, ButtonGroup } from 'react-bootstrap';
 import { axiosAPI } from "../api";
-import { IFlight, ICargo } from "../models";
-
-import { AppDispatch, RootState } from "../store";
-import { setFlight, resetFlight, setComposition } from "../store/flightSlice";
+import { getFlight } from '../api/Flights';
+import { IFlight } from "../models";
+import { AppDispatch } from "../store";
 import { addToHistory } from "../store/historySlice";
-
-import AuthCheck, { CUSTOMER } from '../components/AuthCheck'
 import LoadAnimation from '../components/LoadAnimation';
 import { SmallCCard } from '../components/CargoCard';
 import Breadcrumbs from '../components/Breadcrumbs';
-
-interface ApiResponse {
-    flight: IFlight
-    cargos: ICargo[]
-}
+import {FlightComposition} from '../api/Flights'
 
 const FlightInfo = () => {
     let { flight_id } = useParams()
-    const flight = useSelector((state: RootState) => state.flight.flight);
-    const composition = useSelector((state: RootState) => state.flight.flightComposition);
-    const [loaded, setLoaded] = useState<boolean>(false)
-    const dispatch = useDispatch<AppDispatch>();
-    const location = useLocation().pathname;
+    const [flight, setFlight] = useState<IFlight | null>(null)
+    const [composition, setComposition] = useState<FlightComposition[] | null>([])
+    const [loaded, setLoaded] = useState(false)
+    const dispatch = useDispatch<AppDispatch>()
+    const location = useLocation().pathname
+    const navigate = useNavigate()
     const [edit, setEdit] = useState(false)
     const [rocket_type, setRocketType] = useState<string>('')
-    const navigate = useNavigate()
+    const [editQuantityCargoId, setEditQuantityCargoId] = useState<string | null>(null)
+    const [quantities, setQuantities] = useState<number[]>([])
+
+    const getFlightData = () => {
+        setLoaded(false)
+        getFlight(flight_id)
+            .then(data => {
+                if (data === null) {
+                    setFlight(null)
+                    setComposition([])
+                    setQuantities([])
+                } else {
+                    setFlight(data.flight)
+                    setRocketType(data.flight.rocket_type ? data.flight.rocket_type : '')
+                    setComposition(data.cargos)
+                    setQuantities(data.cargos.map((cargo) => cargo.cargo_quantity))
+                }
+                setLoaded(true)
+            })
+            .catch((error) => {
+                console.error("Error while fetching data:", error);
+                setLoaded(true)
+            });
+    }
 
     const update = () => {
         let accessToken = localStorage.getItem('access_token');
@@ -44,48 +60,16 @@ const FlightInfo = () => {
                     'Content-Type': 'application/json',
                 }
             })
-            .then(response => {
-                console.log(response.data)
-                dispatch(setFlight(response.data))
-            })
+            .then(() => getFlightData())
             .catch((error) => {
                 console.error("Error while fetching data:", error);
             });
         setEdit(false);
     }
 
-    const getFlights = () => {
-        const accessToken = localStorage.getItem('access_token');
-        if (!accessToken) {
-            return
-        }
-
-        setLoaded(false)
-        axiosAPI.get<ApiResponse>(`/flights/${flight_id}`, {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json',
-            }
-        })
-            .then(response => {
-                console.log(response.data)
-                dispatch(setFlight(response.data.flight))
-                dispatch(setComposition(response.data.cargos))
-                setRocketType(response.data.flight.rocket_type ? response.data.flight.rocket_type : '')
-                setLoaded(true)
-            })
-            .catch((error) => {
-                console.error("Error while fetching data:", error);
-            });
-    }
-
     useEffect(() => {
-        getFlights()
+        getFlightData()
         dispatch(addToHistory({ path: location, name: "Полет" }))
-
-        return () => {
-            dispatch(resetFlight());
-        };
     }, [dispatch]);
 
     const deleteFromFlight = (id: string) => () => {
@@ -94,12 +78,30 @@ const FlightInfo = () => {
             return
         }
         axiosAPI.delete(`/flights/delete_cargo/${id}`, { headers: { 'Authorization': `Bearer ${accessToken}`, } })
-            .then(response => {
-                dispatch(setComposition(response.data.cargos))
-            })
+            .then(() => getFlightData())
             .catch((error) => {
                 console.error("Error while fetching data:", error);
             });
+    }
+
+    const updateQuantity = (id: string, index: number) => () => {
+        let accessToken = localStorage.getItem('access_token');
+        if (!accessToken) {
+            return
+        }
+        axiosAPI.put(`/flights/change_cargo/${id}`,
+            { quantity: quantities[index]},
+            {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(() => getFlightData())
+            .catch((error) => {
+                console.error("Error while fetching data:", error);
+            });
+        setEditQuantityCargoId(null);
     }
 
     const confirm = () => {
@@ -109,7 +111,7 @@ const FlightInfo = () => {
         }
         axiosAPI.put('/flights/user_confirm', null, { headers: { 'Authorization': `Bearer ${accessToken}`, } })
             .then(_ => {
-                getFlights()
+                getFlightData()
             })
             .catch((error) => {
                 console.error("Error while fetching data:", error);
@@ -131,88 +133,116 @@ const FlightInfo = () => {
     }
 
     return (
-        <AuthCheck allowedRole={CUSTOMER}>
-            {loaded ? (
-                flight ? (
-                    <>
-                        <Navbar>
-                            <Nav>
-                                <Breadcrumbs />
-                            </Nav>
-                        </Navbar>
-                        <Col className='p-3'>
-                            <Card className='shadow text center text-md-start'>
-                                <Card.Body>
+        <LoadAnimation loaded={loaded}>
+            {flight ? (
+                <>
+                    <Navbar>
+                        <Breadcrumbs />
+                    </Navbar>
+                    <Col className='p-3'>
+                        <Card className='shadow text center text-md-start'>
+                            <Card.Body>
+                                <InputGroup className='mb-1'>
+                                    <InputGroup.Text className='t-input-group-text'>Статус</InputGroup.Text>
+                                    <Form.Control readOnly value={flight.status} />
+                                </InputGroup>
+                                <InputGroup className='mb-1'>
+                                    <InputGroup.Text className='t-input-group-text'>Создан</InputGroup.Text>
+                                    <Form.Control readOnly value={flight.creation_date} />
+                                </InputGroup>
+                                <InputGroup className='mb-1'>
+                                    <InputGroup.Text className='t-input-group-text'>Сформирован</InputGroup.Text>
+                                    <Form.Control readOnly value={flight.formation_date ? flight.formation_date : ''} />
+                                </InputGroup>
+                                {(flight.status == 'отклонен' || flight.status == 'завершен') && <InputGroup className='mb-1'>
+                                    <InputGroup.Text className='t-input-group-text'>{flight.status === 'отклонен' ? 'Отклонен' : 'Завершен'}</InputGroup.Text>
+                                    <Form.Control readOnly value={flight.completion_date ? flight.completion_date : ''} />
+                                </InputGroup>}
+                                <InputGroup className='mb-1'>
+                                    <InputGroup.Text className='t-input-group-text'>Тип ракеты</InputGroup.Text>
+                                    <Form.Control
+                                        readOnly={!edit}
+                                        value={rocket_type}
+                                        onChange={(e) => setRocketType(e.target.value)}
+                                    />
+                                    {!edit && flight.status === 'черновик' && <Button variant='light' onClick={() => setEdit(true)}>Изменить</Button>}
+                                    {edit && <Button variant='success' onClick={update}>Сохранить</Button>}
+                                    {edit && <Button
+                                        variant='danger'
+                                        onClick={() => {
+                                            setRocketType(flight.rocket_type ? flight.rocket_type : '')
+                                            setEdit(false)
+                                        }}>
+                                        Отменить
+                                    </Button>}
+                                </InputGroup>
+                                {flight.status != 'черновик' &&
                                     <InputGroup className='mb-1'>
-                                        <InputGroup.Text>Статус</InputGroup.Text>
-                                        <Form.Control readOnly value={flight.status} />
-                                    </InputGroup>
-                                    <InputGroup className='mb-1'>
-                                        <InputGroup.Text>Создан</InputGroup.Text>
-                                        <Form.Control readOnly value={flight.creation_date} />
-                                    </InputGroup>
-                                    <InputGroup className='mb-1'>
-                                        <InputGroup.Text>Сформирован</InputGroup.Text>
-                                        <Form.Control readOnly value={flight.formation_date ? flight.formation_date : ''} />
-                                    </InputGroup>
-                                    <InputGroup className='mb-1'>
-                                        <InputGroup.Text>{flight.status === 'отклонен' ? 'Отклонен' : 'Завершен'}</InputGroup.Text>
-                                        <Form.Control readOnly value={flight.completion_date ? flight.completion_date : ''} />
-                                    </InputGroup>
-                                    <InputGroup className='mb-1'>
-                                        <InputGroup.Text>Тип ракеты</InputGroup.Text>
-                                        <Form.Control
-                                            readOnly={!edit}
-                                            value={rocket_type}
-                                            onChange={(e) => setRocketType(e.target.value)}
-                                        />
-                                        {!edit && flight.status === 'черновик' && <Button onClick={() => setEdit(true)}>Изменить</Button>}
-                                        {edit && <Button variant='success' onClick={update}>Сохранить</Button>}
-                                        {edit && <Button
-                                            variant='danger'
-                                            onClick={() => {
-                                                setRocketType(flight.rocket_type ? flight.rocket_type : '');
-                                                setEdit(false)
-                                            }}>
-                                            Отменить
-                                        </Button>}
-                                    </InputGroup>
-                                    {flight.status != 'черновик' &&
+                                        <InputGroup.Text className='t-input-group-text'>Статус доставки</InputGroup.Text>
+                                        <Form.Control readOnly value={flight.shipment_status ? flight.shipment_status : ''} />
+                                    </InputGroup>}
+                                {flight.status == 'черновик' &&
+                                    <ButtonGroup className='flex-grow-1 w-100'>
+                                        <Button variant='success' onClick={confirm}>Сформировать</Button>
+                                        <Button variant='danger' onClick={deleteFlight}>Удалить</Button>
+                                    </ButtonGroup>}
+                            </Card.Body>
+                        </Card>
+                        {composition && <Row className='row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 px-1 mt-2'>
+                            {composition.map((cargo, index) => (
+                                <div className='d-flex p-2 justify-content-center' key={cargo.cargo_info.uuid}>
+                                    <SmallCCard  {...cargo.cargo_info}>
+                                        {flight.status == 'черновик' &&
+                                            <Button
+                                                variant='danger'
+                                                className='mt-0 rounded-bottom border border-dark'
+                                                onClick={deleteFromFlight(cargo.cargo_info.uuid)}>
+                                                Удалить из корзины
+                                            </Button>}
+                                        
                                         <InputGroup className='mb-1'>
-                                            <InputGroup.Text>Статус доставки</InputGroup.Text>
-                                            <Form.Control readOnly value={flight.shipment_status ? flight.shipment_status : ''} />
-                                        </InputGroup>}
-                                    {flight.status == 'черновик' &&
-                                        <ButtonGroup className='flex-grow-1 w-100'>
-                                            <Button variant='success' onClick={confirm}>Сформировать</Button>
-                                            <Button variant='danger' onClick={deleteFlight}>Удалить</Button>
-                                        </ButtonGroup>}
-                                </Card.Body>
-                            </Card>
-                            <Row className='row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 px-1 mt-2'>
-                                {composition.map((cargo) => (
-                                    <div className='d-flex p-2 justify-content-center' key={cargo.uuid}>
-                                        <SmallCCard  {...cargo}>
-                                            {flight.status == 'черновик' &&
+                                            <InputGroup.Text className='t-input-group-text'>Штук</InputGroup.Text>
+                                            <Form.Control
+                                                type="number"
+                                                min="1"
+                                                readOnly={editQuantityCargoId == cargo.cargo_info.uuid ? false : true}
+                                                value={quantities[index]}
+                                                onChange={(e) => setQuantities(quantities.map((quantity, i) => i === index ?
+                                                    (parseInt(e.target.value) ? parseInt(e.target.value) : 1) : quantity))}
+                                            />
+                                        </InputGroup>
+                                        {flight.status == 'черновик' && (!editQuantityCargoId || cargo.cargo_info.uuid != editQuantityCargoId) &&
+                                            <div className='my-display-inline'>
+                                                <Button variant='light' className='my-edit-button' onClick={() => setEditQuantityCargoId(cargo.cargo_info.uuid)}>Изменить</Button>
+                                            </div>}
+                                        {flight.status == 'черновик' && (editQuantityCargoId && cargo.cargo_info.uuid === editQuantityCargoId) &&
+                                            <div className='my-display-inline'>
                                                 <Button
-                                                    variant='outline-danger'
-                                                    className='mt-0 rounded-bottom'
-                                                    onClick={deleteFromFlight(cargo.uuid)}>
-                                                    Удалить
-                                                </Button>}
-                                        </SmallCCard>
-                                    </div>
-                                ))}
-                            </Row>
-                        </Col>
-                    </>
-                ) : (
-                    <h4 className='text-center'>Такого полета не существует</h4>
-                )
+                                                    className='my-edit-button'
+                                                    variant='success'
+                                                    onClick={updateQuantity(cargo.cargo_info.uuid, index)}>
+                                                    Сохранить
+                                                </Button>
+                                                <Button
+                                                    className='my-edit-button'
+                                                    variant='danger'
+                                                    onClick={() => {
+                                                        setQuantities(quantities.map((quantity, i) => i === index ? cargo.cargo_quantity : quantity))
+                                                        setEditQuantityCargoId(null)
+                                                    }}>
+                                                    Отменить
+                                                </Button>
+                                            </div>}
+                                    </SmallCCard>
+                                </div>
+                            ))}
+                        </Row>}
+                    </Col>
+                </>
             ) : (
-                <LoadAnimation />
+                <h4 className='text-center'>Такого полета нет</h4>
             )}
-        </AuthCheck>
+        </LoadAnimation>
     )
 }
 

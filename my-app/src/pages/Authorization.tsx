@@ -1,11 +1,17 @@
 import { FC, useState, ChangeEvent, FormEvent } from 'react';
 import { Form, Button, Container } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import { AxiosResponse, AxiosError } from 'axios';
 import { useDispatch } from "react-redux";
-import { axiosAPI } from '../api'
+import { axiosAPI } from "../api";
 import { AppDispatch } from "../store";
-import { setLogin as setLoginStore, setRole} from "../store/userSlice"
+import { setLogin as setLoginStore, setRole } from "../store/userSlice";
+
+interface AuthResp {
+    expires_in: number;
+    access_token: string;
+    token_type: string;
+    role: number;
+}
 
 const Authorization: FC = () => {
     const [login, setLogin] = useState<string>('')
@@ -13,23 +19,22 @@ const Authorization: FC = () => {
     const dispatch = useDispatch<AppDispatch>()
     const navigate = useNavigate()
 
+    const authorize = async (login: string, password: string): Promise<void> => {
+        const response = await axiosAPI.post<AuthResp>('/user/login', { login, password });
+        let currentTime = new Date()
+        let expires_at = new Date(currentTime.getTime() + response.data.expires_in / 1000000)
+        localStorage.setItem('expires_at', expires_at.toISOString());
+        localStorage.setItem('access_token', response.data.access_token);
+        localStorage.setItem('role', response.data.role.toString());
+        localStorage.setItem('login', login);
+        dispatch(setLoginStore(login));
+        dispatch(setRole(response.data.role));
+    }
+
     const handleRegistration = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        axiosAPI.post('/user/login', { login, password })
-            .then((response: AxiosResponse) => {
-                let currentTime = new Date()
-                let expires_at = new Date(currentTime.getTime() + parseInt(response.data.expires_in) / 1000000)
-                localStorage.setItem('expires_at', expires_at.toISOString());
-                localStorage.setItem('access_token', response.data.access_token);
-                localStorage.setItem('role', response.data.role);
-                localStorage.setItem('login', response.data.login);
-                dispatch(setLoginStore(login));
-                dispatch(setRole(response.data.role));
-                navigate('/')
-            })
-            .catch((error: AxiosError) => {
-                console.error('Error:', error.message);
-            })
+        authorize(login, password)
+            .then(() => navigate('/'))
     };
 
     return (
@@ -63,7 +68,7 @@ const Authorization: FC = () => {
                     className='mt-3 w-100'
                     disabled={!login || !password}
                 >
-                    Авторизироваться
+                    Войти
                 </Button>
 
                 <Link to={'/registration'}>

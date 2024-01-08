@@ -1,13 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
-import cargoReducer from "./cargoSlice";
-import flightReducer from "./flightSlice";
+
+import searchReducer from "./searchSlice";
 import historyReducer from "./historySlice";
 import userReducer from "./userSlice";
 
 export const store = configureStore({
     reducer: {
-        cargo: cargoReducer,
-        flight: flightReducer,
+        search: searchReducer,
         history: historyReducer,
         user: userReducer,
     },

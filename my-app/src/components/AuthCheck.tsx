@@ -1,23 +1,23 @@
 import React, { ReactNode } from 'react';
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
 
 interface AuthCheckProps {
     children: ReactNode;
-    allowedRole: string
+    allowedRoles: number[];
 }
 
-export const CUSTOMER = '1'
-export const MODERATOR = '2'
+export const NOTAUTHORIZED = 0;
+export const CUSTOMER = 1;
+export const MODERATOR = 2;
 
-const AuthCheck: React.FC<AuthCheckProps> = ({ children, allowedRole }) => {
-    const expires_at_iso = localStorage.getItem("expires_at")
-    const expires_at = expires_at_iso ? new Date(expires_at_iso) : null
-    const userRole = localStorage.getItem('role')
-    const access = expires_at && userRole && expires_at > new Date() && parseInt(userRole) >= parseInt(allowedRole)
+const AuthCheck: React.FC<AuthCheckProps> = ({ children, allowedRoles }) => {
+    const userRole = useSelector((state: RootState) => state.user.role);
 
-    return access ? (
+    return allowedRoles.includes(userRole) ? (
         <>{children}</>
     ) : (
-        <h2 className="text-center">Страница недоступна</h2>
+        <h2 className="text-center">Страница вам недоступна</h2>
     );
 };
 

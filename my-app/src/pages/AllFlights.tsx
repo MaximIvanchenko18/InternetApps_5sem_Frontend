@@ -1,95 +1,60 @@
-import { useEffect, forwardRef, ButtonHTMLAttributes } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, Link } from 'react-router-dom';
-import { format } from 'date-fns';
-import DatePicker from 'react-datepicker';
 import { Navbar, Form, Button, Table, Col, InputGroup } from 'react-bootstrap';
-import { axiosAPI } from "../api";
+import { getFlights } from '../api/Flights';
 import { IFlight } from "../models";
 import { AppDispatch, RootState } from "../store";
-import { setFlights, setStatusFilter, setDateStart, setDateEnd } from "../store/flightSlice";
+import { setStatus, setDateStart, setDateEnd } from "../store/searchSlice";
 import { clearHistory, addToHistory } from "../store/historySlice";
 import LoadAnimation from '../components/LoadAnimation';
-import AuthCheck, { CUSTOMER, MODERATOR } from '../components/AuthCheck'
-
-interface ApiResponse {
-    flights: IFlight[]
-}
-
-interface CustomInputProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-    value?: string;
-    onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
-}
+import { MODERATOR } from '../components/AuthCheck'
+import DateTimePicker from '../components/DatePicker';
 
 const AllFlights = () => {
-    const flights = useSelector((state: RootState) => state.flight.flights);
-    const statusFilter = useSelector((state: RootState) => state.flight.statusFilter);
-    const dateStart = useSelector((state: RootState) => state.flight.formationDateStart);
-    const dateEnd = useSelector((state: RootState) => state.flight.formationDateEnd);
+    const [flights, setFlights] = useState<IFlight[]>([]);
+    const statusFilter = useSelector((state: RootState) => state.search.status);
+    const startDate = useSelector((state: RootState) => state.search.formationDateStart);
+    const endDate = useSelector((state: RootState) => state.search.formationDateEnd);
     const role = useSelector((state: RootState) => state.user.role);
     const dispatch = useDispatch<AppDispatch>();
     const location = useLocation().pathname;
+    const [loaded, setLoaded] = useState(false);
 
-    const getFlights = () => {
-        let accessToken = localStorage.getItem('access_token');
-        if (!accessToken) {
-            return
-        }
-
-        axiosAPI.get<ApiResponse>('/flights', {
-            params: {
-                ...(statusFilter && { status: statusFilter }),
-                ...(dateStart && { form_date_start: format(new Date(dateStart), 'yyyy-MM-dd HH:mm') }),
-                ...(dateEnd && { form_date_end: format(new Date(dateEnd), 'yyyy-MM-dd HH:mm') }),
-            },
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json',
-            }
-        })
-            .then(response => {
-                console.log(response.data)
-                dispatch(setFlights(response.data.flights))
+    const getFlightsData = () => {
+        setLoaded(false)
+        getFlights(statusFilter, startDate, endDate)
+            .then((data) => {
+                setFlights(data)
+                setLoaded(true)
             })
             .catch((error) => {
-                console.error("Error while fetching data:", error);
-            });
+                console.error("Error while fetching data:", error)
+                setLoaded(true)
+            })
     }
 
 
     const handleSearch = (event: React.FormEvent<any>) => {
-        event.preventDefault();
-        getFlights();
+        event.preventDefault()
+        getFlightsData()
     }
 
     useEffect(() => {
         dispatch(clearHistory())
         dispatch(addToHistory({ path: location, name: "Полеты" }))
-        getFlights();
+        getFlightsData()
     }, [dispatch]);
 
-    const CustomInput = forwardRef<HTMLButtonElement, CustomInputProps>((props, ref) => (
-        <Button
-            variant="outline-dark"
-            ref={ref}
-            size="sm"
-            className="text-nowrap shadow-sm"
-            style={{ paddingRight: '1.5rem', minWidth: '137px' }}
-            {...props}
-        >
-            {props.value ? props.value : "Введите дату"}
-        </Button>
-    ));
-
     return (
-        <AuthCheck allowedRole={CUSTOMER}>
+        <>
             <Navbar>
                 <Form className="d-flex flex-row align-items-stretch flex-grow-1 gap-2" onSubmit={handleSearch}>
                     <InputGroup size='sm'>
                         <InputGroup.Text >Статус</InputGroup.Text>
                         <Form.Select
                             defaultValue={statusFilter}
-                            onChange={(status) => dispatch(setStatusFilter(status.target.value))}
+                            onChange={(status) => dispatch(setStatus(status.target.value))}
                             className="shadow-sm"
                         >
                             <option value="">Любой</option>
@@ -98,40 +63,24 @@ const AllFlights = () => {
                             <option value="отклонен">Отклонен</option>
                         </Form.Select>
                     </InputGroup>
-                    <DatePicker
-                        selected={dateStart ? new Date(dateStart) : null}
-                        onChange={(date: Date) => dispatch(setDateStart(date))}
-                        showTimeSelect
-                        timeFormat="HH:mm"
-                        timeIntervals={60}
-                        isClearable
-                        timeCaption="Время"
-                        dateFormat="HH:mm MM.d.yyyy"
-                        customInput={<CustomInput />}
-                        className='text-nowrap'
+                    <DateTimePicker
+                        selected={startDate ? new Date(startDate) : null}
+                        onChange={(date: Date) => dispatch(setDateStart(date ? date.toISOString() : null))}
                     />
-                    <DatePicker
-                        selected={dateEnd ? new Date(dateEnd) : null}
-                        onChange={(date: Date) => dispatch(setDateEnd(date))}
-                        showTimeSelect
-                        timeFormat="HH:mm"
-                        timeIntervals={60}
-                        isClearable
-                        timeCaption="Время"
-                        dateFormat="HH:mm MM.d.yyyy"
-                        customInput={<CustomInput />}
-                        className='text-nowrap'
+                    <DateTimePicker
+                        selected={endDate ? new Date(endDate) : null}
+                        onChange={(date: Date) => dispatch(setDateEnd(date ? date.toISOString() : null))}
                     />
                     <Button
                         variant="primary"
                         size="sm"
                         type="submit"
-                        className="shadow-lg">
+                        className="shadow-lg border border-dark">
                         Поиск
                     </Button>
                 </Form>
             </Navbar>
-            {flights ? (
+            < LoadAnimation loaded={loaded}>
                 <Table bordered hover>
                     <thead>
                         <tr>
@@ -170,12 +119,9 @@ const AllFlights = () => {
                         ))}
                     </tbody>
                 </Table>
-            ) : (
-                <LoadAnimation />
-            )
-            }
-        </ AuthCheck >
-    );
+            </LoadAnimation >
+        </>
+    )
 }
 
 export default AllFlights

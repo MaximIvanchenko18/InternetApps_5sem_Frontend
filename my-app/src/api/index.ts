@@ -7,16 +7,11 @@ const ip = 'localhost'
 const port = '3000'
 export const imagePlaceholder = `${import.meta.env.BASE_URL}placeholder.jpg`
 
-export const axiosAPI = axios.create({ baseURL: `http://${ip}:${port}/api/`, timeout: 500 });
-export const axiosImage = axios.create({ baseURL: `http://${ip}:${port}/images/`, timeout: 1000 });
-
-type Draft = {
-    uuid: string;
-    cargo_count: number;
-}
+export const axiosAPI = axios.create({ baseURL: `http://${ip}:${port}/api/`, timeout: 30000 });
+export const axiosImage = axios.create({ baseURL: `http://${ip}:${port}/images/`, timeout: 5000 });
 
 export type Response = {
-    draft_flight: Draft | null;
+    draft_flight: string | null;
     cargos: ICargo[];
 }
 
@@ -30,12 +25,12 @@ export async function getAllCargo(name?: string, low_price?: number, high_price?
         url += `name=${name}`
         several_args = true
     }
-    if (low_price !== undefined) {
+    if (low_price !== undefined && low_price >= 0) {
         if (several_args) url += `&`
         url += `low_price=${low_price}`
         several_args = true
     }
-    if (high_price !== undefined) {
+    if (high_price !== undefined && high_price > 0) {
         if (several_args) url += `&`
         url += `high_price=${high_price}`
     }
