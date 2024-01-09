@@ -1,14 +1,13 @@
 import { FC, useEffect, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { useDispatch } from "react-redux";
-import Navbar from 'react-bootstrap/Navbar';
-import Nav from 'react-bootstrap/Nav';
+import { Card, Row, Navbar, ListGroup } from 'react-bootstrap';
 import { getCargo } from '../api'
 import { ICargo } from '../models';
 import { AppDispatch } from "../store";
 import { addToHistory } from "../store/historySlice"
 import LoadAnimation from '../components/LoadAnimation';
-import { BigCCard } from '../components/CargoCard';
+import CardImage from '../components/CardImage';
 import Breadcrumbs from '../components/Breadcrumbs';
 
 const CargoInfo: FC = () => {
@@ -30,21 +29,37 @@ const CargoInfo: FC = () => {
             });
     }, [dispatch]);
 
-    return loaded ? (
-        cargo ? (
-            <>
-                <Navbar>
-                    <Nav>
+    return (
+        <LoadAnimation loaded={loaded}>
+            {cargo ? (
+                <>
+                    <Navbar>
                         <Breadcrumbs />
-                    </Nav>
-                </Navbar>
-                <BigCCard {...cargo} />
-            </>
-        ) : (
-            <h3 className='text-center'>Такого груза нет</h3>
-        )
-    ) : (
-        <LoadAnimation loaded={false}><></></LoadAnimation>
+                    </Navbar>
+                    <Card className='shadow-lg text-center text-md-start'>
+                        <Row>
+                            <div className='col-12 col-md-8 overflow-hidden'>
+                                <CardImage url={cargo.photo} />
+                            </div>
+                            <Card.Body className='col-12 col-md-4 ps-md-0'>
+                                <ListGroup variant="flush">
+                                    <ListGroup.Item>
+                                        <Card.Title>{cargo.name}</Card.Title>
+                                        <Card.Text>Категория: {cargo.category}</Card.Text>
+                                        <Card.Text>Описание: {cargo.description}</Card.Text>
+                                        <Card.Text>Цена: {cargo.price} руб.</Card.Text>
+                                        <Card.Text>Масса: {cargo.weight} кг.</Card.Text>
+                                        <Card.Text>Объем: {cargo.capacity} м<sup>3</sup></Card.Text>
+                                    </ListGroup.Item>
+                                </ListGroup>
+                            </Card.Body>
+                        </Row>
+                    </Card>
+                </ >
+            ) : (
+                <h3 className='text-center'>Такого груза нет</h3>
+            )}
+        </LoadAnimation>
     )
 }
 

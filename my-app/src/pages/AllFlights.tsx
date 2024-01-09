@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, Link } from 'react-router-dom';
-import { Navbar, Form, Button, Table, Col, InputGroup } from 'react-bootstrap';
+import { Navbar, Form, Button, Table, InputGroup, ButtonGroup } from 'react-bootstrap';
+import { axiosAPI } from '../api';
 import { getFlights } from '../api/Flights';
 import { IFlight } from "../models";
 import { AppDispatch, RootState } from "../store";
-import { setStatus, setDateStart, setDateEnd } from "../store/searchSlice";
+import { setUser, setStatus, setDateStart, setDateEnd } from "../store/searchSlice";
 import { clearHistory, addToHistory } from "../store/historySlice";
 import LoadAnimation from '../components/LoadAnimation';
 import { MODERATOR } from '../components/AuthCheck'
@@ -13,6 +14,7 @@ import DateTimePicker from '../components/DatePicker';
 
 const AllFlights = () => {
     const [flights, setFlights] = useState<IFlight[]>([]);
+    const userFilter = useSelector((state: RootState) => state.search.user);
     const statusFilter = useSelector((state: RootState) => state.search.status);
     const startDate = useSelector((state: RootState) => state.search.formationDateStart);
     const endDate = useSelector((state: RootState) => state.search.formationDateEnd);
@@ -23,7 +25,7 @@ const AllFlights = () => {
 
     const getFlightsData = () => {
         setLoaded(false)
-        getFlights(statusFilter, startDate, endDate)
+        getFlights(userFilter, statusFilter, startDate, endDate)
             .then((data) => {
                 setFlights(data)
                 setLoaded(true)
@@ -44,13 +46,29 @@ const AllFlights = () => {
         dispatch(clearHistory())
         dispatch(addToHistory({ path: location, name: "Полеты" }))
         getFlightsData()
-    }, [dispatch]);
+        const intervalId = setInterval(() => {
+            getFlightsData();
+        }, 6000);
+        return () => clearInterval(intervalId);
+    }, [dispatch, userFilter, statusFilter, startDate, endDate]);
+
+    const moderator_confirm = (id: string, confirm: boolean) => () => {
+        const accessToken = localStorage.getItem('access_token');
+        axiosAPI.put(`/flights/${id}/moderator_confirm`,
+            { confirm: confirm },
+            { headers: { 'Authorization': `Bearer ${accessToken}`, } })
+            .then(() => setFlights(prevFLights => [...prevFLights]))
+    }
 
     return (
         <>
             <Navbar>
                 <Form className="d-flex flex-row align-items-stretch flex-grow-1 gap-2" onSubmit={handleSearch}>
-                    <InputGroup size='sm'>
+                    {role == MODERATOR && <InputGroup size='sm' className='shadow-sm'>
+                        <InputGroup.Text>Пользователь</InputGroup.Text>
+                        <Form.Control value={userFilter} onChange={(e) => dispatch(setUser(e.target.value))} />
+                    </InputGroup>}
+                    <InputGroup size='sm' className='shadow-sm'>
                         <InputGroup.Text >Статус</InputGroup.Text>
                         <Form.Select
                             defaultValue={statusFilter}
@@ -71,24 +89,18 @@ const AllFlights = () => {
                         selected={endDate ? new Date(endDate) : null}
                         onChange={(date: Date) => dispatch(setDateEnd(date ? date.toISOString() : null))}
                     />
-                    <Button
-                        variant="primary"
-                        size="sm"
-                        type="submit"
-                        className="shadow-lg border border-dark">
-                        Поиск
-                    </Button>
                 </Form>
             </Navbar>
-            < LoadAnimation loaded={loaded}>
+            <LoadAnimation loaded={loaded}>
                 <Table bordered hover>
                     <thead>
                         <tr>
-                            {role == MODERATOR && <th className='text-center'>Пользователь</th>}
+                            {role == MODERATOR && <th className='text-center'>Заказчик</th>}
                             <th className='text-center'>Статус</th>
                             <th className='text-center'>Дата создания</th>
                             <th className='text-center'>Дата формирования</th>
                             <th className='text-center'>Дата завершения</th>
+                            <th className='text-center'>Статус доставки</th>
                             <th className='text-center'>Тип ракеты</th>
                             <th className='text-center'></th>
                         </tr>
@@ -101,19 +113,30 @@ const AllFlights = () => {
                                 <td className='text-center'>{flight.creation_date}</td>
                                 <td className='text-center'>{flight.formation_date}</td>
                                 <td className='text-center'>{flight.completion_date}</td>
+                                <td className='text-center'>{flight.shipment_status}</td>
                                 <td className='text-center'>{flight.rocket_type}</td>
-                                <td className=''>
-                                    <Col className='d-flex flex-col align-items-center justify-content-center'>
-                                        <Link to={`/flights/${flight.uuid}`} className='text-decoration-none' >
-                                            <Button
-                                                variant='outline-secondary'
-                                                size='sm'
-                                                className='align-self-center'
-                                            >
-                                                Подробнее
-                                            </Button>
-                                        </Link>
-                                    </Col>
+                                <td className='p-0 text-center align-middle'>
+                                    <Table className='m-0'>
+                                        <tbody>
+                                            <tr>
+                                                <td className='py-1 border-0' style={{ background: 'transparent' }}>
+                                                    <Link to={`/flights/${flight.uuid}`}
+                                                        className='btn btn-sm btn-outline-secondary text-decoration-none w-100' >
+                                                        Подробнее
+                                                    </Link>
+                                                </td>
+                                            </tr>
+                                            {flight.status == 'сформирован' && role == MODERATOR &&
+                                                <tr>
+                                                    <td className='py-1 border-0' style={{ background: 'transparent' }}>
+                                                        <ButtonGroup className='flex-grow-1 w-100'>
+                                                            <Button variant='outline-success' size='sm' onClick={moderator_confirm(flight.uuid, true)}>Подтвердить</Button>
+                                                            <Button variant='outline-danger' size='sm' onClick={moderator_confirm(flight.uuid, false)}>Отклонить</Button>
+                                                        </ButtonGroup>
+                                                    </td>
+                                                </tr>}
+                                        </tbody>
+                                    </Table>
                                 </td>
                             </tr>
                         ))}

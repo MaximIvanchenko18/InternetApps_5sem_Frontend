@@ -1,21 +1,23 @@
 import { useEffect, useState } from 'react';
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { Card, Row, Col, Navbar, InputGroup, Form, Button, ButtonGroup } from 'react-bootstrap';
 import { axiosAPI } from "../api";
 import { getFlight } from '../api/Flights';
 import { IFlight } from "../models";
-import { AppDispatch } from "../store";
+import { AppDispatch, RootState } from "../store";
 import { addToHistory } from "../store/historySlice";
 import LoadAnimation from '../components/LoadAnimation';
 import { SmallCCard } from '../components/CargoCard';
 import Breadcrumbs from '../components/Breadcrumbs';
-import {FlightComposition} from '../api/Flights'
+import {FlightComposition} from '../api/Flights';
+import { MODERATOR } from '../components/AuthCheck';
 
 const FlightInfo = () => {
     let { flight_id } = useParams()
     const [flight, setFlight] = useState<IFlight | null>(null)
     const [composition, setComposition] = useState<FlightComposition[] | null>([])
+    const role = useSelector((state: RootState) => state.user.role)
     const [loaded, setLoaded] = useState(false)
     const dispatch = useDispatch<AppDispatch>()
     const location = useLocation().pathname
@@ -132,6 +134,14 @@ const FlightInfo = () => {
             });
     }
 
+    const moderator_confirm = (confirm: boolean) => () => {
+        const accessToken = localStorage.getItem('access_token');
+        axiosAPI.put(`/flights/${flight?.uuid}/moderator_confirm`,
+            { confirm: confirm },
+            { headers: { 'Authorization': `Bearer ${accessToken}`, } })
+            .then(() => getFlightData())
+    }
+
     return (
         <LoadAnimation loaded={loaded}>
             {flight ? (
@@ -181,6 +191,11 @@ const FlightInfo = () => {
                                         <InputGroup.Text className='t-input-group-text'>Статус доставки</InputGroup.Text>
                                         <Form.Control readOnly value={flight.shipment_status ? flight.shipment_status : ''} />
                                     </InputGroup>}
+                                {flight.status == 'сформирован' && role == MODERATOR &&
+                                    <ButtonGroup className='flex-grow-1 w-100'>
+                                        <Button variant='success' onClick={moderator_confirm(true)}>Подтвердить</Button>
+                                        <Button variant='danger' onClick={moderator_confirm(false)}>Отклонить</Button>
+                                    </ButtonGroup>}
                                 {flight.status == 'черновик' &&
                                     <ButtonGroup className='flex-grow-1 w-100'>
                                         <Button variant='success' onClick={confirm}>Сформировать</Button>

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
-import { AllCargo, CargoInfo, AllFlights, FlightInfo, Authorization, Registration } from './pages';
+import { AllCargo, CargosTable, CargoInfo, CargoEdit, AllFlights, FlightInfo, Authorization, Registration } from './pages';
 import NavigationBar from './components/NavigationBar';
 import { AppDispatch } from "./store";
 import { setLogin, setRole } from "./store/userSlice";
@@ -32,6 +32,8 @@ function App() {
           <Route path="/" element={<Navigate to="/cargo" />} />
           <Route path="/cargo" element={<AllCargo />} />
           <Route path="/cargo/:cargo_id" element={<CargoInfo />} />
+          <Route path="/cargos-edit" element={<AuthCheck allowedRoles={[MODERATOR]}><CargosTable /></AuthCheck>} />
+          <Route path="/cargos-edit/:cargo_id" element={<AuthCheck allowedRoles={[MODERATOR]}><CargoEdit /></AuthCheck>} />
 
           <Route path="/flights" element={<AuthCheck allowedRoles={[CUSTOMER, MODERATOR]}><AllFlights /></AuthCheck>} />
           <Route path="/flights/:flight_id" element={<AuthCheck allowedRoles={[CUSTOMER, MODERATOR]}><FlightInfo /></AuthCheck>} />

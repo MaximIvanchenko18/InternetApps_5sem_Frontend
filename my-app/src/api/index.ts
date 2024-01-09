@@ -7,8 +7,7 @@ const ip = 'localhost'
 const port = '3000'
 export const imagePlaceholder = `${import.meta.env.BASE_URL}placeholder.jpg`
 
-export const axiosAPI = axios.create({ baseURL: `http://${ip}:${port}/api/`, timeout: 30000 });
-export const axiosImage = axios.create({ baseURL: `http://${ip}:${port}/images/`, timeout: 5000 });
+export const axiosAPI = axios.create({ baseURL: `http://${ip}:${port}/api/`, timeout: 5000 });
 
 export type Response = {
     draft_flight: string | null;

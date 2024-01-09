@@ -11,7 +11,6 @@ import { setSearchText, setLowPrice, setHighPrice } from "../store/searchSlice"
 import { clearHistory, addToHistory } from "../store/historySlice"
 import { SmallCCard } from '../components/CargoCard';
 import LoadAnimation from '../components/LoadAnimation';
-//import { NavbarCollapse } from 'react-bootstrap';
 
 const AllCargos = () => {
     const searchText = useSelector((state: RootState) => state.search.searchText);
@@ -40,6 +39,7 @@ const AllCargos = () => {
     
     const handleSearch = (event: React.FormEvent<any>) => {
         event.preventDefault();
+        setCargos([]);
         getCargos();
     }
 

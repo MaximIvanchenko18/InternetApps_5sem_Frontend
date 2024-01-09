@@ -4,9 +4,12 @@ import { Nav, Navbar, Button } from 'react-bootstrap';
 import { axiosAPI } from '../api';
 import { AppDispatch, RootState } from "../store";
 import { resetLogin, resetRole } from "../store/userSlice";
+import { reset } from "../store/searchSlice";
+import { MODERATOR } from "./AuthCheck";
 
 function NavigationBar() {
     const userLogin = useSelector((state: RootState) => state.user.login);
+    const userRole = useSelector((state: RootState) => state.user.role);
     const dispatch = useDispatch<AppDispatch>();
 
     const logout = () => {
@@ -18,6 +21,7 @@ function NavigationBar() {
             .then(_ => {
                 dispatch(resetLogin())
                 dispatch(resetRole())
+                dispatch(reset())
                 localStorage.clear()
             })
             .catch((error) => {
@@ -33,6 +37,7 @@ function NavigationBar() {
                     <Nav className="me-auto flex-grow-1">
                         <Link to="/cargo" className="nav-link">Грузы</Link>
                         <Link to="/flights" className="nav-link">Полеты</Link>
+                        {userRole === MODERATOR && <Link to="/cargos-edit" className="nav-link text-nowrap">Управление грузами</Link>}
                         <Navbar.Collapse className="justify-content-end">
                             {userLogin ? (
                                 <>

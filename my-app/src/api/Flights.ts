@@ -21,6 +21,7 @@ function formatDate(date: Date | null): string {
 }
 
 export async function getFlights(
+    user: string,
     status: string,
     startDate: string | null,
     endDate: string | null
@@ -45,8 +46,9 @@ export async function getFlights(
                 'Content-Type': 'application/json',
             },
         })
-        .then((response) =>
-            response.data.flights.map((fl: IFlight) => ({
+        .then((response) => response.data.flights
+            .filter((fl: IFlight) => fl.customer.toLowerCase().includes(user.toLowerCase()))
+            .map((fl: IFlight) => ({
                 ...fl,
                 creation_date: formatDate(new Date(fl.creation_date)),
                 formation_date: fl.formation_date

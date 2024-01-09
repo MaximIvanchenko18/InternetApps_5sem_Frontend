@@ -5,6 +5,7 @@ interface searchState {
     searchLowPrice: number
     searchHighPrice: number
 
+    user: string
     status: string
     formationDateStart: string | null
     formationDateEnd: string | null
@@ -15,6 +16,7 @@ const initialState: searchState = {
     searchLowPrice: -1,
     searchHighPrice: -1,
 
+    user: '',
     status: '',
     formationDateStart: null,
     formationDateEnd: null,
@@ -33,6 +35,9 @@ const searchSlice = createSlice({
         setHighPrice: (state, { payload }) => {
             state.searchHighPrice = payload
         },
+        setUser: (state, { payload }) => {
+            state.user = payload
+        },
         setStatus: (state, { payload }) => {
             state.status = payload
         },
@@ -42,9 +47,12 @@ const searchSlice = createSlice({
         setDateEnd: (state, { payload }) => {
             state.formationDateEnd = payload
         },
+        reset: (state) => {
+            state = initialState
+        }
     },
 });
 
 export default searchSlice.reducer;
 
-export const { setSearchText, setLowPrice, setHighPrice, setStatus, setDateStart, setDateEnd } = searchSlice.actions;
+export const { setSearchText, setLowPrice, setHighPrice, setUser, setStatus, setDateStart, setDateEnd, reset } = searchSlice.actions;
