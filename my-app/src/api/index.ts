@@ -5,7 +5,7 @@ import axios, { AxiosRequestConfig } from 'axios';
 
 const ip = 'localhost'
 const port = '3000'
-export const imagePlaceholder = `${import.meta.env.BASE_URL}placeholder.jpg`
+export const imagePlaceholder = `${import.meta.env.BASE_URL}placeholder.jpeg`
 
 export const axiosAPI = axios.create({ baseURL: `http://${ip}:${port}/api/`, timeout: 5000 });
 

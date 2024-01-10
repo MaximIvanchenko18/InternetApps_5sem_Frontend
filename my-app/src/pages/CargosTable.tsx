@@ -5,13 +5,13 @@ import { useLocation, Link } from 'react-router-dom';
 import { getAllCargo, axiosAPI } from '../api'
 import { ICargo } from '../models'
 import { AppDispatch, RootState } from "../store";
-import { setSearchText, setLowPrice, setHighPrice } from "../store/searchSlice"
+import { setSearchCargoName, setLowPrice, setHighPrice } from "../store/searchSlice"
 import { clearHistory, addToHistory } from "../store/historySlice"
 import LoadAnimation from '../components/LoadAnimation';
 import CardImage from '../components/CardImage';
 
 const CargoTable = () => {
-    const searchText = useSelector((state: RootState) => state.search.searchText);
+    const searchCargoName = useSelector((state: RootState) => state.search.searchCargoName);
     const searchLowPrice = useSelector((state: RootState) => state.search.searchLowPrice);
     const searchHighPrice = useSelector((state: RootState) => state.search.searchHighPrice);
     const [cargos, setCargos] = useState<ICargo[]>([])
@@ -21,7 +21,7 @@ const CargoTable = () => {
 
     const getCargos = () => {
         setLoaded(false)
-        getAllCargo(searchText, searchLowPrice, searchHighPrice)
+        getAllCargo(searchCargoName, searchLowPrice, searchHighPrice)
             .then(data => {
                 setCargos(data.cargos)
                 setLoaded(true)
@@ -59,8 +59,8 @@ const CargoTable = () => {
                         placeholder="Название"
                         className="form-control-sm flex-grow-1 shadow shadow-sm border border-dark"
                         data-bs-theme="light"
-                        value={searchText}
-                        onChange={(e) => dispatch(setSearchText(e.target.value))}
+                        value={searchCargoName}
+                        onChange={(e) => dispatch(setSearchCargoName(e.target.value))}
                     />
                     <Form.Control
                         type="number"

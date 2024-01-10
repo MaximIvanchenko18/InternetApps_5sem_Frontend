@@ -16,7 +16,6 @@ const CargoEdit: FC = () => {
     const [loaded, setLoaded] = useState<Boolean>(false)
     const dispatch = useDispatch<AppDispatch>();
     const location = useLocation().pathname;
-    const [edit, setEdit] = useState<boolean>(false)
     const [image, setImage] = useState<File | undefined>(undefined);
     const inputFile = useRef<HTMLInputElement | null>(null);
     const navigate = useNavigate()
@@ -40,10 +39,9 @@ const CargoEdit: FC = () => {
                         photo: "",
                     }
                     name = 'Новый груз'
-                    setEdit(true)
                 } else {
                     data = await getCargo(cargo_id);
-                    name = data ? data.name : ''
+                    name = data ? data.name : 'неизвестно'
                 }
                 setCargo(data);
                 dispatch(addToHistory({ path: location, name: name }));
@@ -64,18 +62,11 @@ const CargoEdit: FC = () => {
         setCargo(cargo ? { ...cargo, [e.target.id]: parseInt(e.target.value) } : undefined)
     }
 
-    const deleteCargo = () => {
-        let accessToken = localStorage.getItem('access_token');
-        axiosAPI.delete(`/cargo/${cargo_id}`, { headers: { 'Authorization': `Bearer ${accessToken}`, } })
-            .then(() => navigate('/cargos-edit'))
-    }
-
     const save = () => {
         const accessToken = localStorage.getItem('access_token');
         if (!accessToken) {
             return
         }
-        setEdit(false);
 
         const formData = new FormData();
         if (cargo) {
@@ -91,21 +82,23 @@ const CargoEdit: FC = () => {
 
         if (cargo_id == 'new') {
             axiosAPI.post(`/cargo`, formData, { headers: { 'Authorization': `Bearer ${accessToken}`, } })
-                .then((response) => getCargo(response.data).then((data) => setCargo(data)))
+                .then((response) => getCargo(response.data).then((data) => setCargo(data))).then(() => navigate('/cargos-edit'))
         } else {
             axiosAPI.put(`/cargo/${cargo?.uuid}`, formData, { headers: { 'Authorization': `Bearer ${accessToken}`, } })
-                .then(() => getCargo(cargo_id).then((data) => setCargo(data)))
+                .then(() => getCargo(cargo_id).then((data) => setCargo(data))).then(() => navigate('/cargos-edit'))
         }
     }
 
     const cancel = () => {
-        setEdit(false)
         setImage(undefined)
         if (inputFile.current) {
             inputFile.current.value = ''
         }
-        getCargo(cargo_id)
+        if (cargo_id != 'new') {
+            getCargo(cargo_id)
             .then((data) => setCargo(data))
+        }
+        navigate('/cargos-edit')
     }
 
     return (
@@ -121,61 +114,49 @@ const CargoEdit: FC = () => {
                                 <CardImage url={cargo.photo} />
                             </Col>
                             <Col className='d-flex flex-column col-12 col-md-4 p-0'>
-                                <Form noValidate validated={edit} onSubmit={save}>
+                                <Form validated>
                                     <Card.Body className='flex-grow-1'>
                                         <InputGroup hasValidation className='mb-1'>
                                             <InputGroup.Text className='c-input-group-text'>Название</InputGroup.Text>
-                                            <Form.Control id='name' required type='text' value={cargo.name} readOnly={!edit} onChange={changeString} />
+                                            <Form.Control id='name' required type='text' value={cargo.name} onChange={changeString} />
                                         </InputGroup>
                                         <InputGroup hasValidation className='mb-1'>
                                             <InputGroup.Text className='c-input-group-text'>Английское название</InputGroup.Text>
-                                            <Form.Control id='en_name' required type='text' value={cargo.en_name} readOnly={!edit} onChange={changeString} />
+                                            <Form.Control id='en_name' required type='text' value={cargo.en_name} onChange={changeString} />
                                         </InputGroup>
                                         <InputGroup hasValidation className='mb-1'>
                                             <InputGroup.Text className='c-input-group-text'>Категория</InputGroup.Text>
-                                            <Form.Control id='category' required type='text' value={cargo.category} readOnly={!edit} onChange={changeString} />
+                                            <Form.Control id='category' required type='text' value={cargo.category} onChange={changeString} />
                                         </InputGroup>
                                         <InputGroup className='mb-1'>
                                             <InputGroup.Text className='c-input-group-text'>Цена</InputGroup.Text>
-                                            <Form.Control id='price' required type='number' value={isNaN(cargo.price) ? '' : cargo.price} readOnly={!edit} onChange={changeNumber} />
+                                            <Form.Control id='price' required type='number' value={isNaN(cargo.price) ? '' : cargo.price} onChange={changeNumber} />
                                         </InputGroup>
                                         <InputGroup className='mb-1'>
                                             <InputGroup.Text className='c-input-group-text'>Масса</InputGroup.Text>
-                                            <Form.Control id='weight' required type='number' value={isNaN(cargo.weight) ? '' : cargo.weight} readOnly={!edit} onChange={changeNumber} />
+                                            <Form.Control id='weight' required type='number' value={isNaN(cargo.weight) ? '' : cargo.weight} onChange={changeNumber} />
                                         </InputGroup>
                                         <InputGroup className='mb-3'>
                                             <InputGroup.Text className='c-input-group-text'>Объем</InputGroup.Text>
-                                            <Form.Control id='capacity' required type='number' value={isNaN(cargo.capacity) ? '' : cargo.capacity} readOnly={!edit} onChange={changeNumber} />
+                                            <Form.Control id='capacity' required type='number' value={isNaN(cargo.capacity) ? '' : cargo.capacity} onChange={changeNumber} />
                                         </InputGroup>
                                         <InputGroup className='mb-1'>
                                             <InputGroup.Text className='c-input-group-text'>Описание</InputGroup.Text>
-                                            <Form.Control id='description' required value={cargo.description} readOnly={!edit} onChange={changeString} />
+                                            <Form.Control id='description' required value={cargo.description} onChange={changeString} />
                                         </InputGroup>
                                         <Form.Group className="mb-1">
                                             <Form.Label>Выберите изображение</Form.Label>
                                             <Form.Control
-                                                disabled={!edit}
                                                 type="file"
                                                 accept='image/*'
                                                 ref={inputFile}
                                                 onChange={(e: ChangeEvent<HTMLInputElement>) => setImage(e.target.files?.[0])} />
                                         </Form.Group>
                                     </Card.Body>
-                                    {edit ? (
-                                        <ButtonGroup className='w-100'>
-                                            <Button variant='success' onClick={save}>Сохранить</Button>
-                                            {cargo_id != 'new' && <Button variant='danger' onClick={cancel}>Отменить</Button>}
-                                        </ButtonGroup>
-                                    ) : (
-                                        <ButtonGroup className='w-100'>
-                                            <Button
-                                                variant='light'
-                                                onClick={() => setEdit(true)}>
-                                                Изменить
-                                            </Button>
-                                            <Button variant='danger' onClick={deleteCargo}>Удалить</Button>
-                                        </ButtonGroup>
-                                    )}
+                                    <ButtonGroup className='w-100'>
+                                        <Button variant='success' onClick={save}>Сохранить</Button>
+                                        <Button variant='danger' onClick={cancel}>Отменить</Button>
+                                    </ButtonGroup>
                                 </Form>
                             </Col>
                         </Row>

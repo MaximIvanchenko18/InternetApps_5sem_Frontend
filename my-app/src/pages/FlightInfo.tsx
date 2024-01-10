@@ -24,7 +24,6 @@ const FlightInfo = () => {
     const navigate = useNavigate()
     const [edit, setEdit] = useState(false)
     const [rocket_type, setRocketType] = useState<string>('')
-    const [editQuantityCargoId, setEditQuantityCargoId] = useState<string | null>(null)
     const [quantities, setQuantities] = useState<number[]>([])
 
     const getFlightData = () => {
@@ -86,24 +85,29 @@ const FlightInfo = () => {
             });
     }
 
-    const updateQuantity = (id: string, index: number) => () => {
+    const updateQuantity = (id: string, quantityOrig: number, index: number) => () => {
         let accessToken = localStorage.getItem('access_token');
         if (!accessToken) {
             return
         }
+        if (quantityOrig <= 0) {
+            return
+        }
         axiosAPI.put(`/flights/change_cargo/${id}`,
-            { quantity: quantities[index]},
+            { quantity: quantityOrig},
             {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
                     'Content-Type': 'application/json',
                 }
             })
-            .then(() => getFlightData())
+            .then(() => {
+                setQuantities(quantities.map((quantity, i) => (i === index) ?
+                quantityOrig : quantity))
+            })
             .catch((error) => {
                 console.error("Error while fetching data:", error);
             });
-        setEditQuantityCargoId(null);
     }
 
     const confirm = () => {
@@ -220,32 +224,24 @@ const FlightInfo = () => {
                                             <Form.Control
                                                 type="number"
                                                 min="1"
-                                                readOnly={editQuantityCargoId == cargo.cargo_info.uuid ? false : true}
+                                                readOnly={flight.status == 'черновик' ? false : true}
                                                 value={quantities[index]}
-                                                onChange={(e) => setQuantities(quantities.map((quantity, i) => i === index ?
-                                                    (parseInt(e.target.value) ? parseInt(e.target.value) : 1) : quantity))}
+                                                onChange={(e) => dispatch(updateQuantity(cargo.cargo_info.uuid, parseInt(e.target.value), index))}
                                             />
                                         </InputGroup>
-                                        {flight.status == 'черновик' && (!editQuantityCargoId || cargo.cargo_info.uuid != editQuantityCargoId) &&
+                                        {flight.status == 'черновик' &&
                                             <div className='my-display-inline'>
-                                                <Button variant='light' className='my-edit-button' onClick={() => setEditQuantityCargoId(cargo.cargo_info.uuid)}>Изменить</Button>
-                                            </div>}
-                                        {flight.status == 'черновик' && (editQuantityCargoId && cargo.cargo_info.uuid === editQuantityCargoId) &&
-                                            <div className='my-display-inline'>
-                                                <Button
-                                                    className='my-edit-button'
-                                                    variant='success'
-                                                    onClick={updateQuantity(cargo.cargo_info.uuid, index)}>
-                                                    Сохранить
-                                                </Button>
                                                 <Button
                                                     className='my-edit-button'
                                                     variant='danger'
-                                                    onClick={() => {
-                                                        setQuantities(quantities.map((quantity, i) => i === index ? cargo.cargo_quantity : quantity))
-                                                        setEditQuantityCargoId(null)
-                                                    }}>
-                                                    Отменить
+                                                    onClick={ updateQuantity(cargo.cargo_info.uuid, quantities[index] - 1, index) }>
+                                                    -
+                                                </Button>
+                                                <Button
+                                                    className='my-edit-button'
+                                                    variant='success'
+                                                    onClick={ updateQuantity(cargo.cargo_info.uuid, quantities[index] + 1, index) }>
+                                                    +
                                                 </Button>
                                             </div>}
                                     </SmallCCard>

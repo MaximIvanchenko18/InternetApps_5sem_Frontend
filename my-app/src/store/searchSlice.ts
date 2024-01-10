@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 interface searchState {
-    searchText: string
+    searchCargoName: string
     searchLowPrice: number
     searchHighPrice: number
 
@@ -12,7 +12,7 @@ interface searchState {
 }
 
 const initialState: searchState = {
-    searchText: '',
+    searchCargoName: '',
     searchLowPrice: -1,
     searchHighPrice: -1,
 
@@ -26,8 +26,8 @@ const searchSlice = createSlice({
     name: 'search',
     initialState,
     reducers: {
-        setSearchText: (state, { payload }) => {
-            state.searchText = payload
+        setSearchCargoName: (state, { payload }) => {
+            state.searchCargoName = payload
         },
         setLowPrice: (state, { payload }) => {
             state.searchLowPrice = payload
@@ -49,10 +49,10 @@ const searchSlice = createSlice({
         },
         reset: (state) => {
             state = initialState
-        }
+        },
     },
 });
 
 export default searchSlice.reducer;
 
-export const { setSearchText, setLowPrice, setHighPrice, setUser, setStatus, setDateStart, setDateEnd, reset } = searchSlice.actions;
+export const { setSearchCargoName, setLowPrice, setHighPrice, setUser, setStatus, setDateStart, setDateEnd, reset } = searchSlice.actions;

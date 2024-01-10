@@ -7,13 +7,13 @@ import { useLocation, Link } from 'react-router-dom';
 import { getAllCargo, axiosAPI } from '../api'
 import { ICargo } from '../models'
 import { AppDispatch, RootState } from "../store";
-import { setSearchText, setLowPrice, setHighPrice } from "../store/searchSlice"
+import { setSearchCargoName, setLowPrice, setHighPrice } from "../store/searchSlice"
 import { clearHistory, addToHistory } from "../store/historySlice"
 import { SmallCCard } from '../components/CargoCard';
 import LoadAnimation from '../components/LoadAnimation';
 
 const AllCargos = () => {
-    const searchText = useSelector((state: RootState) => state.search.searchText);
+    const searchCargoName = useSelector((state: RootState) => state.search.searchCargoName);
     const searchLowPrice = useSelector((state: RootState) => state.search.searchLowPrice);
     const searchHighPrice = useSelector((state: RootState) => state.search.searchHighPrice);
     const [cargos, setCargos] = useState<ICargo[]>([]);
@@ -25,7 +25,7 @@ const AllCargos = () => {
 
     const getCargos = () => {
         setLoaded(false)
-        getAllCargo(searchText, searchLowPrice, searchHighPrice)
+        getAllCargo(searchCargoName, searchLowPrice, searchHighPrice)
             .then(data => {
                 setCargos(data.cargos)
                 setDraft(data.draft_flight)
@@ -73,8 +73,8 @@ const AllCargos = () => {
                         placeholder="Название"
                         className="form-control-sm flex-grow-1 shadow shadow-sm border border-dark"
                         data-bs-theme="light"
-                        value={searchText}
-                        onChange={(e) => dispatch(setSearchText(e.target.value))}
+                        value={searchCargoName}
+                        onChange={(e) => dispatch(setSearchCargoName(e.target.value))}
                     />
                     <Form.Control
                         type="number"
@@ -123,7 +123,7 @@ const AllCargos = () => {
             </div>
             {!!role && <Link to={`/flights/${draft}`}>
                 <Button
-                    style={{ position: 'fixed', top: '62px', right: '16px', zIndex: '1000' }}
+                    style={{ position: 'fixed', bottom: '16px', right: '16px', zIndex: '1000' }}
                     className="btn btn-primary rounded-pill"
                     disabled={!draft}>
                     Корзина
