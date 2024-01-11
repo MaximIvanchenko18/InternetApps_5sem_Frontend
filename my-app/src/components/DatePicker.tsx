@@ -19,7 +19,7 @@ const DateTimePicker: FC<DatePickerProps> = ({ selected, onChange }) => {
             ref={ref}
             size="sm"
             className="text-nowrap shadow-sm"
-            style={{ paddingRight: '1.5rem', minWidth: '137px' }}
+            style={{ paddingRight: '1.5rem', minWidth: '137px', width: '100%' }}
             {...props}
         >
             {props.value ? props.value : 'Выберите дату'}

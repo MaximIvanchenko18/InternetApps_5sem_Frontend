@@ -91,7 +91,7 @@ const CargoTable = () => {
                 </Form>
             </Navbar>
             <LoadAnimation loaded={loaded}>
-                <Table bordered hover>
+                <Table bordered hover responsive>
                     <thead>
                         <tr>
                             <th className='text-center'>Изображение</th>

@@ -156,25 +156,27 @@ const FlightInfo = () => {
                     <Col className='p-3'>
                         <Card className='shadow text center text-md-start'>
                             <Card.Body>
-                                <InputGroup className='mb-1'>
+                                <InputGroup className='mb-1 flex-wrap'>
                                     <InputGroup.Text className='t-input-group-text'>Статус</InputGroup.Text>
-                                    <Form.Control readOnly value={flight.status} />
+                                    <Form.Control readOnly value={flight.status} style={{minWidth: `${flight.status.length * 12}px`}}/>
                                 </InputGroup>
                                 <InputGroup className='mb-1'>
                                     <InputGroup.Text className='t-input-group-text'>Создан</InputGroup.Text>
-                                    <Form.Control readOnly value={flight.creation_date} />
+                                    <Form.Control readOnly value={flight.creation_date} style={{minWidth: `${flight.creation_date.length * 10}px`}}/>
                                 </InputGroup>
                                 <InputGroup className='mb-1'>
                                     <InputGroup.Text className='t-input-group-text'>Сформирован</InputGroup.Text>
-                                    <Form.Control readOnly value={flight.formation_date ? flight.formation_date : ''} />
+                                    <Form.Control readOnly value={flight.formation_date ? flight.formation_date : ''}
+                                        style={{minWidth: flight.formation_date ? `${flight.formation_date.length * 10}px` : 'auto'}}/>
                                 </InputGroup>
                                 {(flight.status == 'отклонен' || flight.status == 'завершен') && <InputGroup className='mb-1'>
                                     <InputGroup.Text className='t-input-group-text'>{flight.status === 'отклонен' ? 'Отклонен' : 'Завершен'}</InputGroup.Text>
-                                    <Form.Control readOnly value={flight.completion_date ? flight.completion_date : ''} />
+                                    <Form.Control readOnly value={flight.completion_date ? flight.completion_date : ''}
+                                        style={{minWidth: flight.completion_date ? `${flight.completion_date.length * 10}px` : 'auto'}}/>
                                 </InputGroup>}
                                 <InputGroup className='mb-1'>
                                     <InputGroup.Text className='t-input-group-text'>Тип ракеты</InputGroup.Text>
-                                    <Form.Control
+                                    <Form.Control style={{minWidth: `${rocket_type.length * 12}px`}}
                                         readOnly={!edit}
                                         value={rocket_type}
                                         onChange={(e) => setRocketType(e.target.value)}
@@ -193,7 +195,8 @@ const FlightInfo = () => {
                                 {flight.status != 'черновик' &&
                                     <InputGroup className='mb-1'>
                                         <InputGroup.Text className='t-input-group-text'>Статус доставки</InputGroup.Text>
-                                        <Form.Control readOnly value={flight.shipment_status ? flight.shipment_status : ''} />
+                                        <Form.Control readOnly value={flight.shipment_status ? flight.shipment_status : ''}
+                                            style={{minWidth: flight.shipment_status ? `${flight.shipment_status.length * 12}px` : 'auto'}}/>
                                     </InputGroup>}
                                 {flight.status == 'сформирован' && role == MODERATOR &&
                                     <ButtonGroup className='flex-grow-1 w-100'>

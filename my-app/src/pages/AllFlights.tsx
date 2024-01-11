@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, Link } from 'react-router-dom';
-import { Navbar, Form, Button, Table, InputGroup, ButtonGroup } from 'react-bootstrap';
+import { Navbar, Form, Button, Table, InputGroup, ButtonGroup, Col} from 'react-bootstrap';
 import { axiosAPI } from '../api';
 import { getFlights } from '../api/Flights';
 import { IFlight } from "../models";
@@ -63,11 +63,12 @@ const AllFlights = () => {
     return (
         <>
             <Navbar>
-                <Form className="d-flex flex-row align-items-stretch flex-grow-1 gap-2" onSubmit={handleSearch}>
-                    {role == MODERATOR && <InputGroup size='sm' className='shadow-sm'>
+                <Form className="d-flex flex-wrap align-items-stretch flex-grow-1" onSubmit={handleSearch}>
+                    {role == MODERATOR && <Form.Group as={Col} xs={12} md={3} style={{paddingRight: '10px'}}><InputGroup size='sm' className='shadow-sm'>
                         <InputGroup.Text>Пользователь</InputGroup.Text>
-                        <Form.Control value={userFilter} onChange={(e) => dispatch(setUser(e.target.value))} />
-                    </InputGroup>}
+                        <Form.Control value={userFilter} onChange={(e) => dispatch(setUser(e.target.value))}/>
+                    </InputGroup></Form.Group>}
+                    <Form.Group as={Col} xs={12} md={role == MODERATOR ? 3: 4} style={{paddingRight: '10px'}}>
                     <InputGroup size='sm' className='shadow-sm'>
                         <InputGroup.Text >Статус</InputGroup.Text>
                         <Form.Select
@@ -81,18 +82,23 @@ const AllFlights = () => {
                             <option value="отклонен">Отклонен</option>
                         </Form.Select>
                     </InputGroup>
+                    </Form.Group>
+                    <Form.Group as={Col} xs={12} md={role == MODERATOR ? 3: 4} style={{paddingRight: '10px'}}>
                     <DateTimePicker
                         selected={startDate ? new Date(startDate) : null}
                         onChange={(date: Date) => dispatch(setDateStart(date ? date.toISOString() : null))}
                     />
+                    </Form.Group>
+                    <Form.Group as={Col} xs={12} md={role == MODERATOR ? 3: 4} style={{paddingRight: '10px'}}>
                     <DateTimePicker
                         selected={endDate ? new Date(endDate) : null}
                         onChange={(date: Date) => dispatch(setDateEnd(date ? date.toISOString() : null))}
                     />
+                    </Form.Group>
                 </Form>
             </Navbar>
             <LoadAnimation loaded={loaded}>
-                <Table bordered hover>
+                <Table bordered hover responsive>
                     <thead>
                         <tr>
                             {role == MODERATOR && <th className='text-center'>Заказчик</th>}

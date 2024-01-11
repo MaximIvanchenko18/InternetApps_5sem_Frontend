@@ -11,7 +11,7 @@ interface CardProps extends ICargo {
 
 export const SmallCCard: FC<CardProps> = ({ children, uuid, name, price, weight, photo}) => (
     <Card className='w-100 mx-auto px-0 shadow-lg text-center' key={uuid}>
-        <div className="ratio ratio-16x9 overflow-hidden">
+        <div className="ratio ratio-1x1 overflow-hidden">
             <CardImage url={photo} className='rounded object-fit-cover' />
         </div>
         <Card.Body className='flex-grow-1'>
