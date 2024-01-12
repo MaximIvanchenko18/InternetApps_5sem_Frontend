@@ -106,7 +106,7 @@ const AllCargos = () => {
             <div className='row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 px-1'>
                 <LoadAnimation loaded={loaded}>
                     {cargos.map((cargo) => (
-                        <div className='d-flex p-2 justify-content-center' key={cargo.uuid}>
+                        <div className='my-cards-wrapper' key={cargo.uuid}>
                             <SmallCCard  {...cargo}>
                                 {role != 0 &&
                                     <Button

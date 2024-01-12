@@ -54,3 +54,26 @@ body {
 .react-datepicker-wrapper {
     width: 100%;
 }
+
+.my-cards-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.my-card-item {
+    flex: 1 1 260px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+}
+
+@media (max-width: 575px) {
+    .my-card-item {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px 0
+    }
+}
